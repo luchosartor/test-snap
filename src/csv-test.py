@@ -1,291 +1,171 @@
 __author__ = 'Luciano'
-import csv
-import snap
-import time
+import csv    # file reading and writing
+import snap   # library for network analysis
+import time   # module for printing how long the step takes
+
+# Class to use as a matrix, uses a Python dictionary and has methods to add a value to the matrix and get it passing
+# the nodes' ids
 
 
 class Matrix():
-    pathes = {}
+    def __init__(self):
+        pass
 
-    def addPath(self, i, j, path):
-        if i not in self.pathes:
-            self.pathes[i] = {j: path}
+    paths = {}
+
+    def add_path(self, i, j, path):
+        if i not in self.paths:
+            self.paths[i] = {j: path}
         else:
-            self.pathes[i][j] = path
+            self.paths[i][j] = path
 
-    def getIJ(self, i, j):
-        if i in self.pathes:
-            if j in self.pathes[i]:
-                return self.pathes[i][j]
+    def get_ij(self, i, j):
+        if i in self.paths:
+            if j in self.paths[i]:
+                return self.paths[i][j]
             else:
-                return self.pathes[j][i]
+                return self.paths[j][i]
         else:
-            return self.pathes[j][i]
+            return self.paths[j][i]
 
 
-def readFile(g, netname):
-    with open(netname, 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        dummy = 0
-        for row in reader:
-            if dummy == 0:
-                dummy = 1
-                continue
-            srcNodeId = int(row[1])
-            if not g.IsNode(srcNodeId):
-                g.AddNode(srcNodeId)
-            destNodeId = int(row[5])
-            if not g.IsNode(destNodeId):
-                g.AddNode(destNodeId)
-            g.AddEdge(srcNodeId, destNodeId)
-    csvfile.close()
+# All create_graph or create_paths receives the .csv file's name. Then calls the corresponding read_file method passing
+# net_name (the file's name). After creating the graph, starts creating the matrix with all shortest path. Finally,
+# the matrix is written to a new .csv file with all the shortest paths. Additionally, each method prints how long each
+# step took in seconds. TUNGraph from snap is an undirected graph.
 
 
-def createGraphWithShortPath(netname):
+def create_graph_without_paths(net_name):
     start = time.time()
     g = snap.TUNGraph.New()
-    readFile(g, netname)
-    # pathes = {}  # match each node to all in graph and saves the shortest path
+    read_file(g, net_name)
     source = g.BegNI()
-    titlerow = []  # for matrix writing to csv
+    title_row = []  # for matrix writing to csv
     while source < g.EndNI():
-        sId = source.GetId()
-        # dest = g.GetNI(sId)
-        # dest.Next()
-        titlerow.append(str(sId))
-        # while dest < g.EndNI():
-        # dId = dest.GetId()
-        # if sId not in pathes:
-        # if dId not in pathes:
-        #         pathes[sId] = {}
-        #         pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-        #     else:
-        #         pathes[dId][sId] = snap.GetShortPath(g, sId, dId)
-        # else:
-        #     pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-        #  dest.Next()
+        s_id = source.GetId()
+        title_row.append(str(s_id))
         source.Next()
-    with open('matrix-' + netname, 'wb') as writefile:
-        matrixwriter = csv.writer(writefile, delimiter=',')
-        matrixwriter.writerow(['#'] + titlerow)
-        for i in range(0, len(titlerow)):
-            thisrow = []
-            for j in range(0, len(titlerow)):
+    with open('matrix-' + net_name, 'wb') as writefile:
+        matrix_writer = csv.writer(writefile, delimiter=',')
+        matrix_writer.writerow(['#'] + title_row)
+        for i in range(0, len(title_row)):
+            this_row = []
+            for j in range(0, len(title_row)):
                 if i == j:
-                    thisrow.append("0")
+                    this_row.append("0")
                     continue
-                jId = int(titlerow[j])
-                iId = int(titlerow[i])
-                thisrow.append(str(snap.GetShortPath(g, iId, jId)))
-                # if iId in pathes:
-                # if jId in pathes[iId]:
-                # thisrow.append(str(pathes[iId][jId]))
-                # else:
-                # thisrow.append(str(pathes[jId][iId]))
-                # else:
-                # thisrow.append(str(pathes[jId][iId]))
-            matrixwriter.writerow([titlerow[i]] + thisrow)
+                j_id = int(title_row[j])
+                i_id = int(title_row[i])
+                this_row.append(str(snap.GetShortPath(g, i_id, j_id)))
+            matrix_writer.writerow([title_row[i]] + this_row)
     writefile.close()
     print str(((time.time() - start) / 20) * 10000).replace('.', ',')
 
 
-def createGraphWithPathes(netname):
-    realstart = time.time()
+def create_graph_using_paths(net_name):
+    real_start = time.time()
     g = snap.TUNGraph.New()
-    readFile(g, netname)
-    print "reading and creating graph: "+str((time.time()-realstart))
+    read_file(g, net_name)
+    print "reading and creating graph: " + str((time.time() - real_start))
     start = time.time()
-    pathes = {}  # match each node to all in graph and saves the shortest path
+    paths = {}  # match each node to all in graph and saves the shortest path
     source = g.BegNI()
-    titlerow = []  # for matrix writing to csv
+    title_row = []  # for matrix writing to csv
     while source < g.EndNI():
-        sId = source.GetId()
-        dest = g.GetNI(sId)
+        s_id = source.GetId()
+        dest = g.GetNI(s_id)
         dest.Next()
-        titlerow.append(sId)
+        title_row.append(s_id)
         while dest < g.EndNI():
-            dId = dest.GetId()
-            if sId not in pathes:
-                if dId not in pathes:
-                    pathes[sId] = {}
-                    pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
+            d_id = dest.GetId()
+            if s_id not in paths:
+                if d_id not in paths:
+                    paths[s_id] = {}
+                    paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
                 else:
-                    pathes[dId][sId] = snap.GetShortPath(g, sId, dId)
+                    paths[d_id][s_id] = snap.GetShortPath(g, s_id, d_id)
             else:
-                pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
+                paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
             dest.Next()
         source.Next()
-    print "creating pathes: %f" % (time.time()-start)
+    print "creating paths: %f" % (time.time() - start)
     start = time.time()
-    with open('matrix-' + netname, 'wb') as writefile:
-        matrixwriter = csv.writer(writefile, delimiter=',')
-        matrixwriter.writerow(['#'] + titlerow)
-        for i in range(0, len(titlerow)):
-            thisrow = []
-            for j in range(0, len(titlerow)):
+    with open('matrix-' + net_name, 'wb') as writefile:
+        matrix_writer = csv.writer(writefile, delimiter=',')
+        matrix_writer.writerow(['#'] + title_row)
+        for i in range(0, len(title_row)):
+            this_row = []
+            for j in range(0, len(title_row)):
                 if i == j:
-                    thisrow.append("0")
+                    this_row.append("0")
                     continue
-                jId = titlerow[j]
-                iId = titlerow[i]
-                if iId in pathes:
-                    if jId in pathes[iId]:
-                        thisrow.append(str(pathes[iId][jId]))
+                j_id = title_row[j]
+                i_id = title_row[i]
+                if i_id in paths:
+                    if j_id in paths[i_id]:
+                        this_row.append(str(paths[i_id][j_id]))
                     else:
-                        thisrow.append(str(pathes[jId][iId]))
+                        this_row.append(str(paths[j_id][i_id]))
                 else:
-                    thisrow.append(str(pathes[jId][iId]))
-            matrixwriter.writerow([titlerow[i]] + thisrow)
+                    this_row.append(str(paths[j_id][i_id]))
+            matrix_writer.writerow([title_row[i]] + this_row)
     writefile.close()
-    print "writing: %f" % (time.time()-start)
-    print str((time.time() - realstart)).replace('.', ',')
+    print "writing: %f" % (time.time() - start)
+    print str((time.time() - real_start)).replace('.', ',')
 
-def createGraphWithPathes2(netname):
-    realstart = time.time()
+
+def create_graph_with_paths_3(net_name):
+    real_start = time.time()
     g = snap.TUNGraph.New()
-    nodesIds = []
-    readFile2(g, netname, nodesIds)
-    print "reading and creating graph: "+str((time.time()-realstart))
+    nodes_ids = []
+    paths = {}  # match each node to all in graph and saves the shortest path
+    read_file3(g, net_name, nodes_ids, paths)
+    print "reading and creating graph: " + str((time.time() - real_start))
     start = time.time()
-    pathes = {}  # match each node to all in graph and saves the shortest path
-    for i in range(0, len(nodesIds)):
-        sId = nodesIds[i]
-        for j in range(i+1, len(nodesIds)):
-            dId = nodesIds[j]
-            if sId not in pathes:
-                if dId not in pathes:
-                    pathes[sId] = {}
-                    pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
+    for i in range(0, len(nodes_ids)):
+        s_id = nodes_ids[i]
+        for j in range(i + 1, len(nodes_ids)):
+            d_id = nodes_ids[j]
+            if s_id not in paths:
+                if d_id not in paths:
+                    paths[s_id] = {}
+                    paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
                 else:
-                    pathes[dId][sId] = snap.GetShortPath(g, sId, dId)
+                    if s_id not in paths[d_id]:
+                        paths[d_id][s_id] = snap.GetShortPath(g, s_id, d_id)
             else:
-                pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-    print "creating pathes: %f" % (time.time()-start)
+                if d_id not in paths[s_id]:
+                    paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
+    print "creating paths: %f" % (time.time() - start)
     start = time.time()
-    with open('matrix-' + netname, 'wb') as writefile:
-        matrixwriter = csv.writer(writefile, delimiter=',')
-        matrixwriter.writerow(['#'] + nodesIds)
-        for i in range(0, len(nodesIds)):
-            thisrow = []
-            for j in range(0, len(nodesIds)):
+    with open('matrix-' + net_name, 'wb') as writefile:
+        matrix_writer = csv.writer(writefile, delimiter=',')
+        matrix_writer.writerow(['#'] + nodes_ids)
+        for i in range(0, len(nodes_ids)):
+            this_row = []
+            for j in range(0, len(nodes_ids)):
                 if i == j:
-                    thisrow.append("0")
+                    this_row.append("0")
                     continue
-                jId = nodesIds[j]
-                iId = nodesIds[i]
-                if iId in pathes:
-                    if jId in pathes[iId]:
-                        thisrow.append(str(pathes[iId][jId]))
+                j_id = nodes_ids[j]
+                i_id = nodes_ids[i]
+                if i_id in paths:
+                    if j_id in paths[i_id]:
+                        this_row.append(str(paths[i_id][j_id]))
                     else:
-                        thisrow.append(str(pathes[jId][iId]))
+                        this_row.append(str(paths[j_id][i_id]))
                 else:
-                    thisrow.append(str(pathes[jId][iId]))
-            matrixwriter.writerow([nodesIds[i]] + thisrow)
+                    this_row.append(str(paths[j_id][i_id]))
+            matrix_writer.writerow([nodes_ids[i]] + this_row)
     writefile.close()
-    print "writing: %f" % (time.time()-start)
-    print str((time.time() - realstart)).replace('.', ',')
+    print "writing: %f" % (time.time() - start)
+    print str((time.time() - real_start)).replace('.', ',')
 
-def readFile2(g, netname, nodesIds):
-    with open(netname, 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        dummy = 0
-        for row in reader:
-            if dummy == 0:
-                dummy = 1
-                continue
-            srcNodeId = int(row[1])
-            if not g.IsNode(srcNodeId):
-                g.AddNode(srcNodeId)
-            destNodeId = int(row[5])
-            if not g.IsNode(destNodeId):
-                g.AddNode(destNodeId)
-            g.AddEdge(srcNodeId, destNodeId)
-            if srcNodeId not in nodesIds:
-                nodesIds.append(srcNodeId)
-            if destNodeId not in nodesIds:
-                nodesIds.append(destNodeId)
-    csvfile.close()
 
-def readFile3(g, netname, nodesIds, pathes):
-    with open(netname, 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        dummy = 0
-        for row in reader:
-            if dummy == 0:
-                dummy = 1
-                continue
-            srcNodeId = int(row[1])
-            if not g.IsNode(srcNodeId):
-                g.AddNode(srcNodeId)
-            destNodeId = int(row[5])
-            if not g.IsNode(destNodeId):
-                g.AddNode(destNodeId)
-            g.AddEdge(srcNodeId, destNodeId)
-            if srcNodeId not in pathes:
-                if destNodeId not in pathes:
-                    pathes[srcNodeId] = {}
-                    pathes[srcNodeId][destNodeId] = 1
-                else:
-                    pathes[destNodeId][srcNodeId] = 1
-            else:
-                pathes[srcNodeId][destNodeId] = 1
-            if srcNodeId not in nodesIds:
-                nodesIds.append(srcNodeId)
-            if destNodeId not in nodesIds:
-                nodesIds.append(destNodeId)
-    csvfile.close()
-
-def createGraphWithPathes3(netname):
-    realstart = time.time()
-    g = snap.TUNGraph.New()
-    nodesIds = []
-    pathes = {}  # match each node to all in graph and saves the shortest path
-    readFile3(g, netname, nodesIds, pathes)
-    print "reading and creating graph: "+str((time.time()-realstart))
-    start = time.time()
-    for i in range(0, len(nodesIds)):
-        sId = nodesIds[i]
-        for j in range(i+1, len(nodesIds)):
-            dId = nodesIds[j]
-            if sId not in pathes:
-                if dId not in pathes:
-                    pathes[sId] = {}
-                    pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-                else:
-                    if sId not in pathes[dId]:
-                        pathes[dId][sId] = snap.GetShortPath(g, sId, dId)
-            else:
-                if dId not in pathes[sId]:
-                    pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-    print "creating pathes: %f" % (time.time()-start)
-    start = time.time()
-    with open('matrix-' + netname, 'wb') as writefile:
-        matrixwriter = csv.writer(writefile, delimiter=',')
-        matrixwriter.writerow(['#'] + nodesIds)
-        for i in range(0, len(nodesIds)):
-            thisrow = []
-            for j in range(0, len(nodesIds)):
-                if i == j:
-                    thisrow.append("0")
-                    continue
-                jId = nodesIds[j]
-                iId = nodesIds[i]
-                if iId in pathes:
-                    if jId in pathes[iId]:
-                        thisrow.append(str(pathes[iId][jId]))
-                    else:
-                        thisrow.append(str(pathes[jId][iId]))
-                else:
-                    thisrow.append(str(pathes[jId][iId]))
-            matrixwriter.writerow([nodesIds[i]] + thisrow)
-    writefile.close()
-    print "writing: %f" % (time.time()-start)
-    print str((time.time() - realstart)).replace('.', ',')
-
-def createGraphWithMatrix(netname):
+def create_graph_with_matrix_class(net_name):
     start = time.time()
     g = snap.TUNGraph.New()
-    readFile(g, netname)
+    read_file(g, net_name)
     matrix = Matrix()
     title = []
     node = g.BegNI()
@@ -294,46 +174,145 @@ def createGraphWithMatrix(netname):
         n = g.GetNI(node.GetId())
         title.append(node.GetId())
         while n < end:
-            matrix.addPath(node.GetId(), n.GetId(), snap.GetShortPath(g, node.GetId(), n.GetId()))
+            matrix.add_path(node.GetId(), n.GetId(), snap.GetShortPath(g, node.GetId(), n.GetId()))
             n.Next()
         node.Next()
-    with open('matrix-' + netname, 'wb') as writefile:
-        matrixwriter = csv.writer(writefile, delimiter=',')
-        matrixwriter.writerow(['#'] + title)
+    with open('matrix-' + net_name, 'wb') as writefile:
+        matrix_writer = csv.writer(writefile, delimiter=',')
+        matrix_writer.writerow(['#'] + title)
         for i in range(0, len(title)):
-            thisrow = []
+            this_row = []
             for j in range(0, len(title)):
                 if i == j:
-                    thisrow.append(0)
+                    this_row.append(0)
                 else:
-                    thisrow.append(matrix.getIJ(title[i], title[j]))
-            matrixwriter.writerow([title[i]] + thisrow)
+                    this_row.append(matrix.get_ij(title[i], title[j]))
+            matrix_writer.writerow([title[i]] + this_row)
         writefile.close()
     print str(((time.time() - start) * 20) * 10000).replace('.', ',')
 
 
-#createGraphWithMatrix('startup-net-arg-mini.csv')
-print "------------------Pathes2"
-createGraphWithPathes2('startup-net-arg-small.csv')
+def create_paths_matrix_best_method(net_name):
+    real_start = time.time()
+    g = snap.TUNGraph.New()
+    nodes_ids = []
+    best_read_file(g, net_name, nodes_ids)
+    print "reading and creating graph: " + str((time.time() - real_start))
+    start = time.time()
+    paths = {}  # match each node to all in graph and saves the shortest path
+    for i in range(0, len(nodes_ids)):
+        s_id = nodes_ids[i]
+        for j in range(i + 1, len(nodes_ids)):
+            d_id = nodes_ids[j]
+            if s_id not in paths:
+                if d_id not in paths:
+                    paths[s_id] = {}
+                    paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
+                else:
+                    paths[d_id][s_id] = snap.GetShortPath(g, s_id, d_id)
+            else:
+                paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
+    print "creating paths: %f" % (time.time() - start)
+    start = time.time()
+    with open('matrix-' + net_name, 'wb') as writefile:
+        matrix_writer = csv.writer(writefile, delimiter=',')
+        matrix_writer.writerow(['#'] + nodes_ids)
+        for i in range(0, len(nodes_ids)):
+            this_row = []
+            for j in range(0, len(nodes_ids)):
+                if i == j:
+                    this_row.append("0")
+                    continue
+                j_id = nodes_ids[j]
+                i_id = nodes_ids[i]
+                if i_id in paths:
+                    if j_id in paths[i_id]:
+                        this_row.append(str(paths[i_id][j_id]))
+                    else:
+                        this_row.append(str(paths[j_id][i_id]))
+                else:
+                    this_row.append(str(paths[j_id][i_id]))
+            matrix_writer.writerow([nodes_ids[i]] + this_row)
+    writefile.close()
+    print "writing: %f" % (time.time() - start)
+    print str((time.time() - real_start)).replace('.', ',')
 
 
+# All "read_file" methods receives the .csv file's name and a graph to save the data. There are minor changes in each
+# of them for optimization. The final method chosen one y "best_read_file"
 
-#createGraphWithShortPath('startup-net-arg-mini.csv')
 
-# while source < g.EndNI():               method that works
-#     sId = source.GetId()
-#     dest = g.GetNI(sId)
-#     dest.Next()
-#     titlerow.append(sId)
-#     while dest < g.EndNI():
-#         dId = dest.GetId()
-#         if sId not in pathes:
-#             if dId not in pathes:
-#                 pathes[sId] = {}
-#                 pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-#             else:
-#                 pathes[dId][sId] = snap.GetShortPath(g, sId, dId)
-#         else:
-#             pathes[sId][dId] = snap.GetShortPath(g, sId, dId)
-#         dest.Next()
-#     source.Next()
+def read_file(g, net_name):
+    with open(net_name, 'rb') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        dummy = 0
+        for row in reader:
+            if dummy == 0:
+                dummy = 1
+                continue
+            src_node_id = int(row[1])
+            if not g.IsNode(src_node_id):
+                g.AddNode(src_node_id)
+            dest_node_id = int(row[5])
+            if not g.IsNode(dest_node_id):
+                g.AddNode(dest_node_id)
+            g.AddEdge(src_node_id, dest_node_id)
+    csvfile.close()
+
+
+def read_file3(g, net_name, nodes_ids, paths):
+    with open(net_name, 'rb') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        dummy = 0
+        for row in reader:
+            if dummy == 0:
+                dummy = 1
+                continue
+            src_node_id = int(row[1])
+            if not g.IsNode(src_node_id):
+                g.AddNode(src_node_id)
+            dest_node_id = int(row[5])
+            if not g.IsNode(dest_node_id):
+                g.AddNode(dest_node_id)
+            g.AddEdge(src_node_id, dest_node_id)
+            if src_node_id not in paths:
+                if dest_node_id not in paths:
+                    paths[src_node_id] = {}
+                    paths[src_node_id][dest_node_id] = 1
+                else:
+                    paths[dest_node_id][src_node_id] = 1
+            else:
+                paths[src_node_id][dest_node_id] = 1
+            if src_node_id not in nodes_ids:
+                nodes_ids.append(src_node_id)
+            if dest_node_id not in nodes_ids:
+                nodes_ids.append(dest_node_id)
+    csvfile.close()
+
+
+def best_read_file(g, net_name, nodes_ids):
+    with open(net_name, 'rb') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        dummy = 0
+        for row in reader:
+            if dummy == 0:
+                dummy = 1
+                continue
+            src_node_id = int(row[1])
+            if not g.IsNode(src_node_id):
+                g.AddNode(src_node_id)
+            dest_node_id = int(row[5])
+            if not g.IsNode(dest_node_id):
+                g.AddNode(dest_node_id)
+            g.AddEdge(src_node_id, dest_node_id)
+            if src_node_id not in nodes_ids:
+                nodes_ids.append(src_node_id)
+            if dest_node_id not in nodes_ids:
+                nodes_ids.append(dest_node_id)
+    csvfile.close()
+
+
+# method testing.
+create_paths_matrix_best_method('startup-net-arg-small.csv')
+
+
