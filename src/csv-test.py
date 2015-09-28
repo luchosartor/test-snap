@@ -46,7 +46,7 @@ def create_graph_without_paths(net_name):
         s_id = source.GetId()
         title_row.append(str(s_id))
         source.Next()
-    with open('matrix-' + net_name, 'wb') as writefile:
+    with open(net_name.replace('input/', 'output/matrix-'), 'wb') as writefile:
         matrix_writer = csv.writer(writefile, delimiter=',')
         matrix_writer.writerow(['#'] + title_row)
         for i in range(0, len(title_row)):
@@ -91,7 +91,7 @@ def create_graph_using_paths(net_name):
         source.Next()
     print "creating paths: %f" % (time.time() - start)
     start = time.time()
-    with open('matrix-' + net_name, 'wb') as writefile:
+    with open(net_name.replace('input/', 'output/matrix-'), 'wb') as writefile:
         matrix_writer = csv.writer(writefile, delimiter=',')
         matrix_writer.writerow(['#'] + title_row)
         for i in range(0, len(title_row)):
@@ -139,7 +139,7 @@ def create_graph_with_paths_3(net_name):
                     paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
     print "creating paths: %f" % (time.time() - start)
     start = time.time()
-    with open('matrix-' + net_name, 'wb') as writefile:
+    with open(net_name.replace('input/', 'output/matrix-'), 'wb') as writefile:
         matrix_writer = csv.writer(writefile, delimiter=',')
         matrix_writer.writerow(['#'] + nodes_ids)
         for i in range(0, len(nodes_ids)):
@@ -178,7 +178,7 @@ def create_graph_with_matrix_class(net_name):
             matrix.add_path(node.GetId(), n.GetId(), snap.GetShortPath(g, node.GetId(), n.GetId()))
             n.Next()
         node.Next()
-    with open('matrix-' + net_name, 'wb') as writefile:
+    with open(net_name.replace('input/', 'output/matrix-'), 'wb') as writefile:
         matrix_writer = csv.writer(writefile, delimiter=',')
         matrix_writer.writerow(['#'] + title)
         for i in range(0, len(title)):
@@ -215,7 +215,7 @@ def create_paths_matrix_best_method(net_name):
                 paths[s_id][d_id] = snap.GetShortPath(g, s_id, d_id)
     print "creating paths: %f" % (time.time() - start)
     start = time.time()
-    with open('matrix-' + net_name, 'wb') as writefile:
+    with open(net_name.replace('input/', 'output/matrix-'), 'wb') as writefile:
         matrix_writer = csv.writer(writefile, delimiter=',')
         matrix_writer.writerow(['#'] + nodes_ids)
         for i in range(0, len(nodes_ids)):
@@ -246,6 +246,6 @@ def create_paths_matrix_best_method(net_name):
 
 
 # method testing.
-create_paths_matrix_best_method('startup-net-arg-small.csv')
+create_paths_matrix_best_method('input/startup-net-arg-mini.csv')
 
 
