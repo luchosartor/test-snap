@@ -2,6 +2,7 @@ __author__ = 'Luciano'
 import csv    # file reading and writing
 import snap   # library for network analysis
 import time   # module for printing how long the step takes
+import csv_read_file as crf
 
 # Class to use as a matrix, uses a Python dictionary and has methods to add a value to the matrix and get it passing
 # the nodes' ids
@@ -38,7 +39,7 @@ class Matrix():
 def create_graph_without_paths(net_name):
     start = time.time()
     g = snap.TUNGraph.New()
-    read_file(g, net_name)
+    crf.read_file(g, net_name)
     source = g.BegNI()
     title_row = []  # for matrix writing to csv
     while source < g.EndNI():
@@ -65,7 +66,7 @@ def create_graph_without_paths(net_name):
 def create_graph_using_paths(net_name):
     real_start = time.time()
     g = snap.TUNGraph.New()
-    read_file(g, net_name)
+    crf.read_file(g, net_name)
     print "reading and creating graph: " + str((time.time() - real_start))
     start = time.time()
     paths = {}  # match each node to all in graph and saves the shortest path
@@ -119,7 +120,7 @@ def create_graph_with_paths_3(net_name):
     g = snap.TUNGraph.New()
     nodes_ids = []
     paths = {}  # match each node to all in graph and saves the shortest path
-    read_file3(g, net_name, nodes_ids, paths)
+    crf.read_file3(g, net_name, nodes_ids, paths)
     print "reading and creating graph: " + str((time.time() - real_start))
     start = time.time()
     for i in range(0, len(nodes_ids)):
@@ -165,7 +166,7 @@ def create_graph_with_paths_3(net_name):
 def create_graph_with_matrix_class(net_name):
     start = time.time()
     g = snap.TUNGraph.New()
-    read_file(g, net_name)
+    crf.read_file(g, net_name)
     matrix = Matrix()
     title = []
     node = g.BegNI()
@@ -196,7 +197,7 @@ def create_paths_matrix_best_method(net_name):
     real_start = time.time()
     g = snap.TUNGraph.New()
     nodes_ids = []
-    best_read_file(g, net_name, nodes_ids)
+    crf.best_read_file(g, net_name, nodes_ids)
     print "reading and creating graph: " + str((time.time() - real_start))
     start = time.time()
     paths = {}  # match each node to all in graph and saves the shortest path
@@ -242,74 +243,6 @@ def create_paths_matrix_best_method(net_name):
 # of them for optimization. The final method chosen one y "best_read_file"
 
 
-def read_file(g, net_name):
-    with open(net_name, 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        dummy = 0
-        for row in reader:
-            if dummy == 0:
-                dummy = 1
-                continue
-            src_node_id = int(row[1])
-            if not g.IsNode(src_node_id):
-                g.AddNode(src_node_id)
-            dest_node_id = int(row[5])
-            if not g.IsNode(dest_node_id):
-                g.AddNode(dest_node_id)
-            g.AddEdge(src_node_id, dest_node_id)
-    csvfile.close()
-
-
-def read_file3(g, net_name, nodes_ids, paths):
-    with open(net_name, 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        dummy = 0
-        for row in reader:
-            if dummy == 0:
-                dummy = 1
-                continue
-            src_node_id = int(row[1])
-            if not g.IsNode(src_node_id):
-                g.AddNode(src_node_id)
-            dest_node_id = int(row[5])
-            if not g.IsNode(dest_node_id):
-                g.AddNode(dest_node_id)
-            g.AddEdge(src_node_id, dest_node_id)
-            if src_node_id not in paths:
-                if dest_node_id not in paths:
-                    paths[src_node_id] = {}
-                    paths[src_node_id][dest_node_id] = 1
-                else:
-                    paths[dest_node_id][src_node_id] = 1
-            else:
-                paths[src_node_id][dest_node_id] = 1
-            if src_node_id not in nodes_ids:
-                nodes_ids.append(src_node_id)
-            if dest_node_id not in nodes_ids:
-                nodes_ids.append(dest_node_id)
-    csvfile.close()
-
-
-def best_read_file(g, net_name, nodes_ids):
-    with open(net_name, 'rb') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        dummy = 0
-        for row in reader:
-            if dummy == 0:
-                dummy = 1
-                continue
-            src_node_id = int(row[1])
-            if not g.IsNode(src_node_id):
-                g.AddNode(src_node_id)
-            dest_node_id = int(row[5])
-            if not g.IsNode(dest_node_id):
-                g.AddNode(dest_node_id)
-            g.AddEdge(src_node_id, dest_node_id)
-            if src_node_id not in nodes_ids:
-                nodes_ids.append(src_node_id)
-            if dest_node_id not in nodes_ids:
-                nodes_ids.append(dest_node_id)
-    csvfile.close()
 
 
 # method testing.
