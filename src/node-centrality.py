@@ -3,6 +3,7 @@ import snap
 import csv_read_file as crf
 import csv
 import time
+import json
 
 
 def get_node_centrality(net_name):
@@ -28,4 +29,20 @@ def get_node_centrality(net_name):
     print g.GetEdges()
 
 
-get_node_centrality('input/startup-net-bra.csv')
+def print_csv_to_json():
+    with open("output/centrality-startup-net-arg-mini.csv", 'rb') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        dummy = 0
+        my_json = []
+        for row in reader:
+            if dummy == 0:
+                dummy = 1
+                continue
+            my_json.append(row)
+        print json.loads(json.dumps(my_json))
+    csvfile.close()
+
+# get_node_centrality('input/startup-net-arg-mini.csv')
+
+
+print_csv_to_json()
