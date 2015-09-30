@@ -30,17 +30,20 @@ def get_node_centrality(net_name):
 
 
 def print_csv_to_json():
+    my_json = []
     with open("output/centrality-startup-net-arg-mini.csv", 'rb') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         dummy = 0
-        my_json = []
         for row in reader:
             if dummy == 0:
                 dummy = 1
                 continue
             my_json.append(row)
-        print json.dumps(my_json)
     csvfile.close()
+    with open("output/json-startup-net-arg-mini.json", 'wb') as json_file:
+        json.dump(my_json, json_file)
+        json_file.close()
+    return json.dumps(my_json)
 
 # get_node_centrality('input/startup-net-arg-mini.csv')
 
