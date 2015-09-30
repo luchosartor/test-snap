@@ -39,7 +39,7 @@ def print_csv_to_json():
                 dummy = 1
                 continue
             my_json.append(row)
-        print json.loads(json.dumps(my_json))
+        print json.dumps(my_json)
     csvfile.close()
 
 # get_node_centrality('input/startup-net-arg-mini.csv')
