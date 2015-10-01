@@ -34,7 +34,25 @@ app.controller('CentralityController', ['$scope', '$http', function ($scope, $ht
     $scope.searchStartup = function () {
         $scope.showSearch = $scope.showSearch != true;
     };
+    $scope.searchResults = [];
+    $scope.searchInput = "";
     $scope.searchStartupByName = function () {
-
+        $scope.searchResults = [];
+        $scope.noResult = "";
+        if($scope.searchInput == ""){
+            return true;
+        }
+        for(var i = 0; i<$scope.len; i++){
+            var j = $scope.json[i];
+            if(j[0].indexOf($scope.searchInput) != -1){
+                $scope.searchResults.push(j);
+            }else if(j[1].toLowerCase().indexOf($scope.searchInput.toLowerCase()) != -1){
+                $scope.searchResults.push(j);
+            }
+        }
+        if($scope.searchResults.length == 0 ){
+            $scope.noResult = "No Results";
+        }
+        return true;
     }
 }]);
