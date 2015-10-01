@@ -22,7 +22,7 @@
                     <span data-toggle="tooltip" data-placement="bottom" title="Search Startup"><a href="#" style="color: white" data-toggle="modal"
                                                                                                   data-target="#searchModal"><span
                             class="glyphicon glyphicon-search"></span></a></span>
-                    <span data-toggle="tooltip" data-placement="bottom" title="Show filters"><a href="#" style="color: white" data-toggle="collapse"
+                    <span data-toggle="tooltip" data-placement="bottom" title="Filters"><a href="#" style="color: white" data-toggle="modal"
                                                                                                 data-target="#filters"><span
                             class="glyphicon glyphicon-filter"></span></a></span>
                     <a href="#" style="color: white" data-toggle="tooltip" title="Export to csv" data-placement="bottom" ng-click="csv(fileName)"><span
@@ -30,13 +30,6 @@
                 </div>
             </div>
             <div class="panel-body">
-                <div class="collapse" id="filters">
-                    <div class="panel panel-default">
-                        <div class="panel-body">
-
-                        </div>
-                    </div>
-                </div>
                 <table class="table table-bordered">
                     <thead>
                     <tr>
@@ -97,6 +90,42 @@
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="filters" role="dialog">
+        <div class="modal-dialog" style="display: table">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span></button>
+                    <h4 class="modal-title">Filters</h4>
+                </div>
+                <div class="modal-body">
+                    <form ng-submit="filterStartups()">
+
+                    </form>
+                    <br>
+                    <table class="table table-bordered" ng-show="searchResults">
+                        <thead>
+                        <tr>
+                            <th>Startup_id</th>
+                            <th>Startup_name</th>
+                            <th>Degree</th>
+                            <th>Betweenness</th>
+                            <th>Closeness</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="result in searchResults">
+                            <td ng-repeat="j in result">{{j}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <h4>{{noResult}}</h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
 </div>
 
